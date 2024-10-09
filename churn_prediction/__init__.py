@@ -1,2 +1,0 @@
-from churn_prediction.models.model import MyNeuralNet
-from churn_prediction.predict_model import predict
