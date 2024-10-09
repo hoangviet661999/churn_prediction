@@ -1,7 +1,9 @@
-from sklearn.linear_model import LogisticRegression
-import joblib
-from sklearn.metrics import precision_score, recall_score, f1_score
 from pathlib import Path
+
+import joblib
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import f1_score, precision_score, recall_score
+
 
 class BankChurn(object):
     def __init__(self) -> None:
@@ -19,7 +21,7 @@ class BankChurn(object):
                 model: Trained machine learning model.
         """
 
-        model = LogisticRegression(C=.422, penalty="l1", solver="saga")
+        model = LogisticRegression(C=0.422, penalty="l1", solver="saga")
         model = model.fit(X, y)
         return model
 
@@ -44,7 +46,7 @@ class BankChurn(object):
 
         return precision, recall, f1
 
-    def save_model(model , path: str | Path) -> None:
+    def save_model(model, path: str | Path) -> None:
         """
         Save the trained model to a file.
 
@@ -56,7 +58,7 @@ class BankChurn(object):
         joblib.dump(model, path)
 
     def load_model(path: str | Path):
-        """ 
+        """
         Load a trained model from a file.
 
             Parameters:
@@ -65,7 +67,7 @@ class BankChurn(object):
             Returns:
             model: Trained machine learning model.
         """
-        
+
         model = joblib.load(path)
         return model
 
