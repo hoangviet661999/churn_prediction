@@ -4,8 +4,10 @@ from churn_prediction.dataset import process_data
 from churn_prediction.model import train_model, eval_model
 from sklearn.model_selection import train_test_split
 import numpy as np
+from omegaconf import OmegaConf
+import hydra
 
-def main(args):
+def main(args, config):
     dataset = pd.read_csv(args.csv_path)
 
     features = [
@@ -28,9 +30,9 @@ def main(args):
     X_val, _ = process_data(X_val, training=False, data_pipeline=data_pipeline)
 
     param = {
-        'C' : .422,
-        'penalty' : "l1",
-        'solver' : "saga"
+        'C' : config['hyperparameters']['C'],
+        'penalty' : config['hyperparameters']['penalty'],
+        'solver' : config['hyperparameters']['solver']
     }
 
     model = train_model(X_train, y_train, **param)
@@ -40,5 +42,7 @@ def main(args):
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--csv_path', type=str, default=None, help = 'path to csv path')
+    parser.add_argument('--cfg_path', type=str, default='configs/config.yaml', help='path to config path')
     args = parser.parse_args()
-    main(args)
+    config = OmegaConf.load(args.cfg_path)
+    main(args, config)

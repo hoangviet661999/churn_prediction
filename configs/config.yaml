@@ -1,0 +1,4 @@
+hyperparameters:
+  C: 0.422
+  penalty: l1
+  solver: saga
