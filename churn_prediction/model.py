@@ -5,6 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, precision_score, recall_score
 import numpy as np
 
+
 def train_model(X: np.array, y: np.array, **kwargs: dict):
     """
     Trains a machine learning model and returns it.
@@ -21,7 +22,10 @@ def train_model(X: np.array, y: np.array, **kwargs: dict):
     model = model.fit(X, y)
     return model
 
-def eval_model(model: LogisticRegression, X, y) -> tuple[float, float, float]:
+
+def eval_model(
+    model: LogisticRegression, X: np.array, y: np.array
+) -> tuple[float, float, float]:
     """
     Validates the trained machine learning model using precision, recall, and F1.
 
@@ -42,6 +46,7 @@ def eval_model(model: LogisticRegression, X, y) -> tuple[float, float, float]:
 
     return precision, recall, f1
 
+
 def save_model(model, path: str | Path) -> None:
     """
     Save the trained model to a file.
@@ -52,6 +57,7 @@ def save_model(model, path: str | Path) -> None:
     """
 
     joblib.dump(model, path)
+
 
 def load_model(path: str | Path):
     """
@@ -66,6 +72,7 @@ def load_model(path: str | Path):
 
     model = joblib.load(path)
     return model
+
 
 def inference():
     pass
