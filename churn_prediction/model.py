@@ -9,7 +9,7 @@ class BankChurn(object):
     def __init__(self) -> None:
         pass
 
-    def train_model(X, y):
+    def train_model(X, y, param: dict):
         """
         Trains a machine learning model and returns it.
 
@@ -21,7 +21,7 @@ class BankChurn(object):
                 model: Trained machine learning model.
         """
 
-        model = LogisticRegression(C=0.422, penalty="l1", solver="saga")
+        model = LogisticRegression(**param)
         model = model.fit(X, y)
         return model
 
