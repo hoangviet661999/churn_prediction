@@ -1,12 +1,11 @@
 from pathlib import Path
 
 import joblib
-from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, precision_score, recall_score
 import numpy as np
 
 
-def train_model(X: np.array, y: np.array, **kwargs: dict):
+def train_model(model, X: np.array, y: np.array):
     """
     Trains a machine learning model and returns it.
 
@@ -17,15 +16,11 @@ def train_model(X: np.array, y: np.array, **kwargs: dict):
         Returns:
             model: Trained machine learning model.
     """
-
-    model = LogisticRegression(**kwargs)
     model = model.fit(X, y)
     return model
 
 
-def eval_model(
-    model: LogisticRegression, X: np.array, y: np.array
-) -> tuple[float, float, float]:
+def eval_model(model, X: np.array, y: np.array) -> tuple[float, float, float]:
     """
     Validates the trained machine learning model using precision, recall, and F1.
 

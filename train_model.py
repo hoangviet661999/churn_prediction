@@ -1,48 +1,47 @@
 import pandas as pd
-import argparse
 from churn_prediction.dataset import process_data
 from churn_prediction.model import train_model, eval_model
 from sklearn.model_selection import train_test_split
 import numpy as np
-from omegaconf import OmegaConf
 import hydra
+from omegaconf import DictConfig
+from omegaconf import OmegaConf
 
-def main(args, config):
-    dataset = pd.read_csv(args.csv_path)
 
+@hydra.main(config_path="./configs", config_name="config", version_base="1.2")
+def train(cfg: DictConfig):
+    print(f"configuration: \n {OmegaConf.to_yaml(cfg)}")
+
+    dataset_params = cfg["Dataset"]
+
+    dataset = pd.read_csv(dataset_params.data_dir)
     features = [
-        'CreditScore',
-        'Geography',
-        'Gender',
-        'Age',
-        'Tenure',
-        'Balance',
-        'NumOfProducts',
-        'HasCrCard',
-        'IsActiveMember',
-        'EstimatedSalary'
+        "CreditScore",
+        "Geography",
+        "Gender",
+        "Age",
+        "Tenure",
+        "Balance",
+        "NumOfProducts",
+        "HasCrCard",
+        "IsActiveMember",
+        "EstimatedSalary",
     ]
     X = dataset[features]
-    y = np.array(dataset['Exited'])
-    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42, shuffle=True)
+    y = np.array(dataset["Exited"])
+    X_train, X_val, y_train, y_val = train_test_split(
+        X, y, test_size=0.2, random_state=42, shuffle=True
+    )
 
     X_train, data_pipeline = process_data(X_train, training=True)
     X_val, _ = process_data(X_val, training=False, data_pipeline=data_pipeline)
 
-    param = {
-        'C' : config['hyperparameters']['C'],
-        'penalty' : config['hyperparameters']['penalty'],
-        'solver' : config['hyperparameters']['solver']
-    }
-
-    model = train_model(X_train, y_train, **param)
-    precision, recall, f1 = eval_model(model, X_val, y_val)
+    logreg_params = cfg["LogisticRegression"]
+    logreg = hydra.utils.instantiate(logreg_params)
+    logreg = train_model(logreg, X_train, y_train)
+    precision, recall, f1 = eval_model(logreg, X_val, y_val)
     print(f"{precision =}\n{recall =}\n{f1 =}")
 
-if __name__=="__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--csv_path', type=str, default=None, help = 'path to csv path')
-    parser.add_argument('--cfg_path', type=str, default='configs/config.yaml', help='path to config path')
-    args = parser.parse_args()
-    config = OmegaConf.load(args.cfg_path)
-    main(args, config)
+
+if __name__ == "__main__":
+    train()

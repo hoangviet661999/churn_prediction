@@ -1,4 +1,8 @@
-hyperparameters:
+Dataset:
+  data_dir: ./data/train.csv
+
+LogisticRegression: 
+  _target_: sklearn.linear_model.LogisticRegression
   C: 0.422
   penalty: l1
   solver: saga
