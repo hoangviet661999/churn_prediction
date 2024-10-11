@@ -6,15 +6,18 @@ import numpy as np
 import hydra
 from omegaconf import DictConfig
 from omegaconf import OmegaConf
-
+from churn_prediction.utils.logging import get_logger
 
 @hydra.main(config_path="./configs", config_name="config", version_base="1.2")
 def train(cfg: DictConfig):
     print(f"configuration: \n {OmegaConf.to_yaml(cfg)}")
 
     dataset_params = cfg["Dataset"]
-
-    dataset = pd.read_csv(dataset_params.data_dir)
+    try:
+        dataset = pd.read_csv(dataset_params.data_dir)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"No such file or directory: {dataset_params.data_dir}, please check the path!!!")
+    
     features = [
         "CreditScore",
         "Geography",
