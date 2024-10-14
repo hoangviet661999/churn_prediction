@@ -1,14 +1,15 @@
 import logging
 
 import hydra
-import numpy as np
 import pandas as pd
 from omegaconf import DictConfig, OmegaConf
 from sklearn.model_selection import train_test_split
 
 from churn_prediction.dataset import process_data
 from churn_prediction.model import eval_model, train_model
+import wandb
 
+from churn_prediction.visualize import plot_feature_importances
 logger = logging.getLogger(__name__)
 
 
@@ -16,6 +17,11 @@ logger = logging.getLogger(__name__)
 def train(cfg: DictConfig):
     logger.info(f"Configuration: \n {OmegaConf.to_yaml(cfg)}")
 
+    wandb.init(
+        project = "mlops for bank churn",
+        config = OmegaConf.to_container(cfg, resolve=True)
+    )
+    
     dataset_params = cfg["Dataset"]
     assert dataset_params.data_dir.endswith("csv"), "We only support csv files for now"
     try:
@@ -39,7 +45,7 @@ def train(cfg: DictConfig):
         "EstimatedSalary",
     ]
     X = dataset[features]
-    y = np.array(dataset["Exited"])
+    y = dataset["Exited"]
     X_train, X_val, y_train, y_val = train_test_split(
         X, y, test_size=0.2, random_state=42, shuffle=True
     )
@@ -49,15 +55,38 @@ def train(cfg: DictConfig):
     logger.info(f"Train dataloader has shape {X_train.shape}")
     logger.info(f"Validation dataloader has shape {X_val.shape}")
 
-    logreg_params = cfg["LogisticRegression"]
-    logreg = hydra.utils.instantiate(logreg_params)
+    if "LogisticRegression" in cfg:
+        logreg_params = cfg["LogisticRegression"]
+        logreg = hydra.utils.instantiate(logreg_params)
 
-    logger.info("Start training...")
-    logreg = train_model(logreg, X_train, y_train)
-    logger.info("Training done!!!")
+        logger.info("Start training Logistic Regression...")
+        logreg = train_model(logreg, X_train, y_train)
+        logger.info("Training done!!!")
 
-    precision, recall, f1 = eval_model(logreg, X_val, y_val)
-    logger.info(f"\n{precision =}\n{recall =}\n{f1 =}")
+        precision, recall, f1 = eval_model(logreg, X_val, y_val)
+        logger.info(f"Logistic Regression: \n{precision =}\n{recall =}\n{f1 =}")
+
+        wandb.summary['logreg_precision'] = precision
+        wandb.summary['logreg_recall'] = recall
+        wandb.summary['logreg_f1'] = f1
+
+    if "RandomForest" in cfg:
+        rf_params = cfg["RandomForest"]
+        rf = hydra.utils.instantiate(rf_params)
+
+        logger.info("Start training Random Forest...")
+        rf = train_model(rf, X_train, y_train)
+        logger.info("Training done!!!")
+
+        precision, recall, f1 = eval_model(rf, X_val, y_val)
+        logger.info(f"Random Forest: \n{precision =}\n{recall =}\n{f1 =}")
+
+        wandb.summary['rf_precision'] = precision
+        wandb.summary['rf_recall'] = recall
+        wandb.summary['rf_f1'] = f1
+
+        img = plot_feature_importances(data_pipeline, rf)
+        wandb.log({'fea_imp_img': wandb.Image(img)})
 
 
 if __name__ == "__main__":
