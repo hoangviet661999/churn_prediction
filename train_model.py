@@ -1,15 +1,17 @@
 import logging
 
 import hydra
+from hydra.core.hydra_config import HydraConfig
 import pandas as pd
 from omegaconf import DictConfig, OmegaConf
 from sklearn.model_selection import train_test_split
 
-from churn_prediction.dataset import process_data
-from churn_prediction.model import eval_model, train_model
 import wandb
-
+from churn_prediction.dataset import process_data
+from churn_prediction.model import eval_model, train_model, save_model
 from churn_prediction.visualize import plot_feature_importances
+import os
+
 logger = logging.getLogger(__name__)
 
 
@@ -17,11 +19,10 @@ logger = logging.getLogger(__name__)
 def train(cfg: DictConfig):
     logger.info(f"Configuration: \n {OmegaConf.to_yaml(cfg)}")
 
-    wandb.init(
-        project = "mlops for bank churn",
-        config = OmegaConf.to_container(cfg, resolve=True)
+    run = wandb.init(
+        project="mlops for bank churn", config=OmegaConf.to_container(cfg, resolve=True)
     )
-    
+
     dataset_params = cfg["Dataset"]
     assert dataset_params.data_dir.endswith("csv"), "We only support csv files for now"
     try:
@@ -66,9 +67,9 @@ def train(cfg: DictConfig):
         precision, recall, f1 = eval_model(logreg, X_val, y_val)
         logger.info(f"Logistic Regression: \n{precision =}\n{recall =}\n{f1 =}")
 
-        wandb.summary['logreg_precision'] = precision
-        wandb.summary['logreg_recall'] = recall
-        wandb.summary['logreg_f1'] = f1
+        wandb.summary["logreg_precision"] = precision
+        wandb.summary["logreg_recall"] = recall
+        wandb.summary["logreg_f1"] = f1
 
     if "RandomForest" in cfg:
         rf_params = cfg["RandomForest"]
@@ -81,12 +82,22 @@ def train(cfg: DictConfig):
         precision, recall, f1 = eval_model(rf, X_val, y_val)
         logger.info(f"Random Forest: \n{precision =}\n{recall =}\n{f1 =}")
 
-        wandb.summary['rf_precision'] = precision
-        wandb.summary['rf_recall'] = recall
-        wandb.summary['rf_f1'] = f1
+        wandb.summary["rf_precision"] = precision
+        wandb.summary["rf_recall"] = recall
+        wandb.summary["rf_f1"] = f1
 
         img = plot_feature_importances(data_pipeline, rf)
-        wandb.log({'fea_imp_img': wandb.Image(img)})
+        wandb.log({"fea_imp_img": wandb.Image(img)})
+
+        save_model(rf, os.path.join(HydraConfig.get().run.dir, 'rf.pth'))
+        artifact = wandb.Artifact(
+            name = "rf_model",
+            type = "model",
+            description = "Random Forest model for Churn Prediction",
+            metadata = {"precision": precision, "recall": recall, "f1": f1}
+        )
+        artifact.add_file(os.path.join(HydraConfig.get().run.dir, 'rf.pth'))
+        run.log_artifact(artifact)
 
 
 if __name__ == "__main__":
