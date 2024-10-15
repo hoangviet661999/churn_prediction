@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 
 from churn_prediction.data.dataset import process_data
 from churn_prediction.model import eval_model, save_model, train_model
-from churn_prediction.visualize import plot_feature_importances
+from churn_prediction.utils.visualize import plot_feature_importances
 
 logger = logging.getLogger(__name__)
 
@@ -24,29 +24,17 @@ def train(cfg: DictConfig):
     )
 
     dataset_params = cfg["Dataset"]
-    assert dataset_params.data_dir.endswith("csv"), "We only support csv files for now"
+    data_dir = run.use_artifact(dataset_params.data_dir, type="dataset").file(dataset_params.file_name)
+    assert data_dir.endswith("csv"), "We only support csv files for now"
     try:
-        dataset = pd.read_csv(dataset_params.data_dir)
+        X = pd.read_csv(data_dir)
     except FileNotFoundError:
         logger.error(
-            FileNotFoundError(f"No such file or directory: {dataset_params.data_dir}.")
+            FileNotFoundError(f"No such file or directory: {data_dir}.")
         )
         return
 
-    features = [
-        "CreditScore",
-        "Geography",
-        "Gender",
-        "Age",
-        "Tenure",
-        "Balance",
-        "NumOfProducts",
-        "HasCrCard",
-        "IsActiveMember",
-        "EstimatedSalary",
-    ]
-    X = dataset[features]
-    y = dataset["Exited"]
+    y = X.pop("Exited")
     X_train, X_val, y_train, y_val = train_test_split(
         X, y, test_size=0.2, random_state=42, shuffle=True
     )
