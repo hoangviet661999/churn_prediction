@@ -4,6 +4,9 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 
+def clean_data():
+    pass
+
 def process_data(
     X: pd.DataFrame, training: bool = True, data_pipeline: Pipeline = None
 ) -> None:
