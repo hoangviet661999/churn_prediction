@@ -1,16 +1,16 @@
 import logging
+import os
 
 import hydra
-from hydra.core.hydra_config import HydraConfig
 import pandas as pd
+import wandb
+from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig, OmegaConf
 from sklearn.model_selection import train_test_split
 
-import wandb
 from churn_prediction.dataset import process_data
-from churn_prediction.model import eval_model, train_model, save_model
+from churn_prediction.model import eval_model, save_model, train_model
 from churn_prediction.visualize import plot_feature_importances
-import os
 
 logger = logging.getLogger(__name__)
 
@@ -89,14 +89,14 @@ def train(cfg: DictConfig):
         img = plot_feature_importances(data_pipeline, rf)
         wandb.log({"fea_imp_img": wandb.Image(img)})
 
-        save_model(rf, os.path.join(HydraConfig.get().run.dir, 'rf.pth'))
+        save_model(rf, os.path.join(HydraConfig.get().run.dir, "rf.pth"))
         artifact = wandb.Artifact(
-            name = "rf_model",
-            type = "model",
-            description = "Random Forest model for Churn Prediction",
-            metadata = {"precision": precision, "recall": recall, "f1": f1}
+            name="rf_model",
+            type="model",
+            description="Random Forest model for Churn Prediction",
+            metadata={"precision": precision, "recall": recall, "f1": f1},
         )
-        artifact.add_file(os.path.join(HydraConfig.get().run.dir, 'rf.pth'))
+        artifact.add_file(os.path.join(HydraConfig.get().run.dir, "rf.pth"))
         run.log_artifact(artifact)
 
 

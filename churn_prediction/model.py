@@ -1,8 +1,8 @@
 from pathlib import Path
 
 import joblib
-from sklearn.metrics import f1_score, precision_score, recall_score
 import numpy as np
+from sklearn.metrics import f1_score, precision_score, recall_score
 
 
 def train_model(model, X: np.array, y: np.array):

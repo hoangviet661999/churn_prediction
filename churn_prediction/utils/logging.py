@@ -4,8 +4,9 @@ import sys
 
 logger_initialized = {}
 
+
 @functools.lru_cache()
-def get_logger(name: str='mlops', log_file: str=None, log_level=logging.DEBUG):
+def get_logger(name: str = "mlops", log_file: str = None, log_level=logging.DEBUG):
     """
     Initialize a logger by name.
     If the logger hasn't been initialized, the logger will initialize a StreamHandler by deafault and
@@ -25,7 +26,7 @@ def get_logger(name: str='mlops', log_file: str=None, log_level=logging.DEBUG):
 
     if name in logger_initialized:
         return logger
-    
+
     formatter = logging.Formatter(
         "%(levelname)s:\t %(filename)s:%(lineno)d - %(message)s"
     )
