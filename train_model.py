@@ -48,48 +48,32 @@ def train(cfg: DictConfig):
     logger.info(f"Train dataloader has shape {X_train.shape}")
     logger.info(f"Validation dataloader has shape {X_val.shape}")
 
-    if "LogisticRegression" in cfg:
-        logreg_params = cfg["LogisticRegression"]
-        logreg = hydra.utils.instantiate(logreg_params)
+    rf_params = cfg["RandomForest"]
+    rf = hydra.utils.instantiate(rf_params)
 
-        logger.info("Start training Logistic Regression...")
-        logreg = train_model(logreg, X_train, y_train)
-        logger.info("Training done!!!")
+    logger.info("Start training Random Forest...")
+    rf = train_model(rf, X_train, y_train)
+    logger.info("Training done!!!")
 
-        precision, recall, f1 = eval_model(logreg, X_val, y_val)
-        logger.info(f"Logistic Regression: \n{precision =}\n{recall =}\n{f1 =}")
+    precision, recall, f1 = eval_model(rf, X_val, y_val)
+    logger.info(f"Random Forest: \n{precision =}\n{recall =}\n{f1 =}")
 
-        wandb.summary["logreg_precision"] = precision
-        wandb.summary["logreg_recall"] = recall
-        wandb.summary["logreg_f1"] = f1
+    wandb.summary["rf_precision"] = precision
+    wandb.summary["rf_recall"] = recall
+    wandb.summary["rf_f1"] = f1
 
-    if "RandomForest" in cfg:
-        rf_params = cfg["RandomForest"]
-        rf = hydra.utils.instantiate(rf_params)
+    img = plot_feature_importances(data_pipeline, rf)
+    wandb.log({"fea_imp_img": wandb.Image(img)})
 
-        logger.info("Start training Random Forest...")
-        rf = train_model(rf, X_train, y_train)
-        logger.info("Training done!!!")
-
-        precision, recall, f1 = eval_model(rf, X_val, y_val)
-        logger.info(f"Random Forest: \n{precision =}\n{recall =}\n{f1 =}")
-
-        wandb.summary["rf_precision"] = precision
-        wandb.summary["rf_recall"] = recall
-        wandb.summary["rf_f1"] = f1
-
-        img = plot_feature_importances(data_pipeline, rf)
-        wandb.log({"fea_imp_img": wandb.Image(img)})
-
-        save_model(rf, os.path.join(HydraConfig.get().run.dir, "rf.pth"))
-        artifact = wandb.Artifact(
-            name="rf_model",
-            type="model",
-            description="Random Forest model for Churn Prediction",
-            metadata={"precision": precision, "recall": recall, "f1": f1},
-        )
-        artifact.add_file(os.path.join(HydraConfig.get().run.dir, "rf.pth"))
-        run.log_artifact(artifact)
+    save_model(rf, os.path.join(HydraConfig.get().run.dir, "rf.pth"))
+    artifact = wandb.Artifact(
+        name="rf_model",
+        type="model",
+        description="Random Forest model for Churn Prediction",
+        metadata={"precision": precision, "recall": recall, "f1": f1},
+    )
+    artifact.add_file(os.path.join(HydraConfig.get().run.dir, "rf.pth"))
+    run.log_artifact(artifact)
 
 
 if __name__ == "__main__":
