@@ -24,15 +24,19 @@ def train(cfg: DictConfig):
     )
 
     dataset_params = cfg["Dataset"]
-    data_dir = run.use_artifact(dataset_params.data_dir, type="dataset").file(dataset_params.file_name)
+    data_dir = run.use_artifact(dataset_params.data_dir, type="dataset").file(
+        dataset_params.file_name
+    )
     assert data_dir.endswith("csv"), "We only support csv files for now"
     try:
         X = pd.read_csv(data_dir)
     except FileNotFoundError:
-        logger.error(
-            FileNotFoundError(f"No such file or directory: {data_dir}.")
-        )
+        logger.error(FileNotFoundError(f"No such file or directory: {data_dir}."))
         return
+    if X.shape[1] != 11:
+        raise ValueError(
+            f"Expected data has shape (None, 11) but got shape(None, {X.shape[1]})"
+        )
 
     y = X.pop("Exited")
     X_train, X_val, y_train, y_val = train_test_split(
