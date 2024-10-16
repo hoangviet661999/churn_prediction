@@ -62,7 +62,7 @@ def load_model(path: str | Path):
             path(str or Path): Path to the model.
 
         Returns:
-        model: Trained machine learning model.
+            model: Trained machine learning model.
     """
 
     model = joblib.load(path)
