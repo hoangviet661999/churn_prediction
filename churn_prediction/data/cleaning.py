@@ -3,54 +3,24 @@ import logging
 
 import wandb
 
-from .dataset import read_dataset
+from .dataset import (cleaning_data, read_dataset, save_data_locally,
+                      save_data_wandb)
 
 logger = logging.getLogger(__name__)
 
 
-def cleaning_data(input_path: str, output_path: str) -> None:
-    """
-    Cleaning dataset before EDA.
+def clean(input_path, output_path):
+    data = read_dataset(input_path, logger)
 
-    Parameters:
-        input_path(str): Path to data file under csv format.
-        output_path(str): Path to save data after cleaning.
+    logger.info("Start cleaning data...")
+    cleaned_data = cleaning_data(data)
+    logger.info("Cleaning done!!!")
 
-    Returns:
-        None: return None
-    """
-
-    run = wandb.init(project="mlops for bank churn", job_type="cleaning")
-
-    assert input_path.endswith("csv"), "We only support csv files for now"
-    dataset = read_dataset(input_path, logger)
-
-    logger.info("Start cleaning dataset ...")
-    features = [
-        "CreditScore",
-        "Geography",
-        "Gender",
-        "Age",
-        "Tenure",
-        "Balance",
-        "NumOfProducts",
-        "HasCrCard",
-        "IsActiveMember",
-        "EstimatedSalary",
-        "Exited",
-    ]
-    dataset = dataset[features]
-    logger.info("Cleaning dataset done!!!")
+    save_data_locally(cleaned_data, output_path)
 
     logger.info("Start saving data to local and wandb ...")
-    dataset.to_csv(output_path, index=False)
-    artifact = wandb.Artifact(
-        name="cleaned_data",
-        type="dataset",
-        description="Cleaned data ready for EDA stage",
-    )
-    artifact.add_file(output_path)
-    run.log_artifact(artifact)
+    run = wandb.init(project="mlops for bank churn", job_type="cleaning")
+    save_data_wandb(output_path, run)
     logger.info("Saving done!!!")
 
 
@@ -74,4 +44,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    cleaning_data(args.input_path, args.output_path)
+    clean(args.input_path, args.output_path)

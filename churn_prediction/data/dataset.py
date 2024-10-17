@@ -1,28 +1,36 @@
 import logging
 
 import pandas as pd
+import wandb
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 
-def read_dataset(data_dir: str, logger: logging.Logger) -> pd.DataFrame | None:
+def read_dataset(data_dir: str, logger: logging.Logger) -> pd.DataFrame:
+    """
+    Read dataset from csv file.
+
+    Parameters:
+        data_dir(str): csv file path
+        logger(logging.Logger): logging process
+
+    Returns:
+        data(pd.Dataframe): readable dataset from path
+    """
+    assert data_dir.endswith("csv"), "We only support csv files for now"
     try:
         data = pd.read_csv(data_dir)
-    except FileNotFoundError:
+    except FileNotFoundError as e:
         logger.error(FileNotFoundError(f"No such file or directory: {data_dir}."))
-        return None
-    if data.shape[1] != 11:
-        raise ValueError(
-            f"Expected data has shape (None, 11) but got shape(None, {data.shape[1]})"
-        )
+        raise e
 
     return data
 
 
 def process_data(
     X: pd.DataFrame, training: bool = True, data_pipeline: Pipeline = None
-) -> None:
+) -> tuple[pd.DataFrame, Pipeline]:
     """
     Processing data to feed in Machine Learning model.
 
@@ -66,3 +74,60 @@ def process_data(
         X = data_pipeline.transform(X)
 
     return X, data_pipeline
+
+
+def cleaning_data(dataset: pd.DataFrame) -> pd.DataFrame:
+    """
+    Cleaning dataset before EDA.
+
+    Parameters:
+        dataset(pd.DataFrame): data needed to clean
+
+    Returns:
+        cleaned_dataset(pd.Dataframe): cleaned dataset
+    """
+
+    features = [
+        "CreditScore",
+        "Geography",
+        "Gender",
+        "Age",
+        "Tenure",
+        "Balance",
+        "NumOfProducts",
+        "HasCrCard",
+        "IsActiveMember",
+        "EstimatedSalary",
+        "Exited",
+    ]
+    cleaned_dataset = dataset[features]
+
+    return cleaned_dataset
+
+
+def save_data_locally(dataset: pd.DataFrame, output_path: str) -> None:
+    """
+    Save the dataset to a file.
+
+    Parameters:
+        dataset : dataset need to save.
+        path (str or Path): Path to save the dataset.
+    """
+    dataset.to_csv(output_path, index=False)
+
+
+def save_data_wandb(output_path: str, run) -> None:
+    """
+    Save the dataset to wandb
+
+    Parameters:
+        output_path(str): path of dataset need to save.
+        run: wandb run.
+    """
+    artifact = wandb.Artifact(
+        name="cleaned_data",
+        type="dataset",
+        description="Cleaned data ready for EDA stage",
+    )
+    artifact.add_file(output_path)
+    run.log_artifact(artifact)

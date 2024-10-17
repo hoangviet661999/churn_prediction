@@ -26,9 +26,13 @@ def train(cfg: DictConfig):
     data_dir = run.use_artifact(dataset_params.data_dir, type="dataset").file(
         dataset_params.file_name
     )
-    assert data_dir.endswith("csv"), "We only support csv files for now"
     X = read_dataset(data_dir, logger)
 
+    if X.shape[1] != 11:
+        raise ValueError(
+            f"Expected data has shape (None, 11) but got shape(None, {X.shape[1]})"
+        )
+    
     y = X.pop("Exited")
     X_train, X_val, y_train, y_val = train_test_split(
         X, y, test_size=0.2, random_state=42, shuffle=True
