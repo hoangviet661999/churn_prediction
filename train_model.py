@@ -2,13 +2,12 @@ import logging
 import os
 
 import hydra
-import pandas as pd
 import wandb
 from hydra.core.hydra_config import HydraConfig
 from omegaconf import DictConfig, OmegaConf
 from sklearn.model_selection import train_test_split
 
-from churn_prediction.data.dataset import process_data
+from churn_prediction.data.dataset import process_data, read_dataset
 from churn_prediction.model import eval_model, save_model, train_model
 from churn_prediction.utils.visualize import plot_feature_importances
 
@@ -28,15 +27,7 @@ def train(cfg: DictConfig):
         dataset_params.file_name
     )
     assert data_dir.endswith("csv"), "We only support csv files for now"
-    try:
-        X = pd.read_csv(data_dir)
-    except FileNotFoundError:
-        logger.error(FileNotFoundError(f"No such file or directory: {data_dir}."))
-        return
-    if X.shape[1] != 11:
-        raise ValueError(
-            f"Expected data has shape (None, 11) but got shape(None, {X.shape[1]})"
-        )
+    X = read_dataset(data_dir, logger)
 
     y = X.pop("Exited")
     X_train, X_val, y_train, y_val = train_test_split(
