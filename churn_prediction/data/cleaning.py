@@ -1,8 +1,9 @@
 import argparse
 import logging
 
-import pandas as pd
 import wandb
+
+from .dataset import read_dataset
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +23,7 @@ def cleaning_data(input_path: str, output_path: str) -> None:
     run = wandb.init(project="mlops for bank churn", job_type="cleaning")
 
     assert input_path.endswith("csv"), "We only support csv files for now"
-    try:
-        dataset = pd.read_csv(input_path)
-    except FileNotFoundError:
-        logger.error(FileNotFoundError(f"No such file or directory: {input_path}."))
-        return
+    dataset = read_dataset(input_path, logger)
 
     logger.info("Start cleaning dataset ...")
     features = [

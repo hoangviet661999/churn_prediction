@@ -9,8 +9,9 @@ logger_initialized = {}
 def get_logger(name: str = "mlops", log_file: str = None, log_level=logging.DEBUG):
     """
     Initialize a logger by name.
-    If the logger hasn't been initialized, the logger will initialize a StreamHandler by deafault and
-    if the log_file was specified, a FileHandler will be initialized, otherwise the logger will
+    If the logger hasn't been initialized, the logger will initialize a StreamHandler
+    by deafault and if the log_file was specified, a FileHandler will be initialized,
+    otherwise the logger will
     be returned directly.
 
     Parameters:

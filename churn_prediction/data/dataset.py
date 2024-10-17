@@ -1,7 +1,23 @@
+import logging
+
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+
+def read_dataset(data_dir: str, logger: logging.Logger) -> pd.DataFrame | None:
+    try:
+        data = pd.read_csv(data_dir)
+    except FileNotFoundError:
+        logger.error(FileNotFoundError(f"No such file or directory: {data_dir}."))
+        return None
+    if data.shape[1] != 11:
+        raise ValueError(
+            f"Expected data has shape (None, 11) but got shape(None, {data.shape[1]})"
+        )
+
+    return data
 
 
 def process_data(
