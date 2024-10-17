@@ -2,6 +2,7 @@ from pathlib import Path
 
 import joblib
 import numpy as np
+import wandb
 from sklearn.metrics import f1_score, precision_score, recall_score
 
 
@@ -42,7 +43,7 @@ def eval_model(model, X: np.array, y: np.array) -> tuple[float, float, float]:
     return precision, recall, f1
 
 
-def save_model(model, path: str | Path) -> None:
+def save_model_locally(model, path: str | Path) -> None:
     """
     Save the trained model to a file.
 
@@ -52,6 +53,23 @@ def save_model(model, path: str | Path) -> None:
     """
 
     joblib.dump(model, path)
+
+
+def save_model_wandb(path: str | Path, run) -> None:
+    """
+    Save the trained model to wandb.
+
+    Parameters:
+        path (str or Path) : path of model needed to save.
+        run: wandb run
+    """
+    artifact = wandb.Artifact(
+        name="rf_model",
+        type="model",
+        description="Random Forest model for Churn Prediction",
+    )
+    artifact.add_file(path)
+    run.log_artifact(artifact)
 
 
 def load_model(path: str | Path):

@@ -18,7 +18,7 @@ def clean(input_path, output_path):
 
     save_data_locally(cleaned_data, output_path)
 
-    logger.info("Start saving data to local and wandb ...")
+    logger.info("Start saving data to wandb ...")
     run = wandb.init(project="mlops for bank churn", job_type="cleaning")
     save_data_wandb(output_path, run)
     logger.info("Saving done!!!")

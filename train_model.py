@@ -8,7 +8,12 @@ from omegaconf import DictConfig, OmegaConf
 from sklearn.model_selection import train_test_split
 
 from churn_prediction.data.dataset import process_data, read_dataset
-from churn_prediction.model import eval_model, save_model, train_model
+from churn_prediction.model import (
+    eval_model,
+    save_model_locally,
+    save_model_wandb,
+    train_model,
+)
 from churn_prediction.utils.visualize import plot_feature_importances
 
 logger = logging.getLogger(__name__)
@@ -19,7 +24,9 @@ def train(cfg: DictConfig):
     logger.info(f"Configuration: \n {OmegaConf.to_yaml(cfg)}")
 
     run = wandb.init(
-        project="mlops for bank churn", config=OmegaConf.to_container(cfg, resolve=True)
+        project="mlops for bank churn",
+        config=OmegaConf.to_container(cfg, resolve=True),
+        job_type="train",
     )
 
     dataset_params = cfg["Dataset"]
@@ -32,7 +39,7 @@ def train(cfg: DictConfig):
         raise ValueError(
             f"Expected data has shape (None, 11) but got shape(None, {X.shape[1]})"
         )
-    
+
     y = X.pop("Exited")
     X_train, X_val, y_train, y_val = train_test_split(
         X, y, test_size=0.2, random_state=42, shuffle=True
@@ -60,15 +67,10 @@ def train(cfg: DictConfig):
     img = plot_feature_importances(data_pipeline, rf)
     wandb.log({"fea_imp_img": wandb.Image(img)})
 
-    save_model(rf, os.path.join(HydraConfig.get().run.dir, "rf.pth"))
-    artifact = wandb.Artifact(
-        name="rf_model",
-        type="model",
-        description="Random Forest model for Churn Prediction",
-        metadata={"precision": precision, "recall": recall, "f1": f1},
-    )
-    artifact.add_file(os.path.join(HydraConfig.get().run.dir, "rf.pth"))
-    run.log_artifact(artifact)
+    save_model_locally(rf, os.path.join(HydraConfig.get().run.dir, "rf.pth"))
+    logger.info("Start saving model to wandb ...")
+    save_model_wandb(os.path.join(HydraConfig.get().run.dir, "rf.pth"), run)
+    logger.info("Saving done!!!")
 
 
 if __name__ == "__main__":
