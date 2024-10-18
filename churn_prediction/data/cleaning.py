@@ -1,15 +1,25 @@
+import os
+import sys
+
+__dir__ = os.path.dirname(__file__)
+sys.path.append(__dir__)
+sys.path.insert(0, os.path.abspath(os.path.join(__dir__, '..')))
+
 import argparse
-import logging
 
 import wandb
+from dataset import (
+    cleaning_data,
+    read_dataset,
+    save_data_locally,
+    save_data_wandb
+)
+from utils.logging import get_logger
 
-from .dataset import (cleaning_data, read_dataset, save_data_locally,
-                      save_data_wandb)
+logger = get_logger()
 
-logger = logging.getLogger(__name__)
-
-
-def clean(input_path, output_path):
+def make_dataset(input_path, output_path):
+    run = wandb.init(project="mlops for bank churn", job_type="cleaning")
     data = read_dataset(input_path, logger)
 
     logger.info("Start cleaning data...")
@@ -19,7 +29,6 @@ def clean(input_path, output_path):
     save_data_locally(cleaned_data, output_path)
 
     logger.info("Start saving data to wandb ...")
-    run = wandb.init(project="mlops for bank churn", job_type="cleaning")
     save_data_wandb(output_path, run)
     logger.info("Saving done!!!")
 
@@ -44,4 +53,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    clean(args.input_path, args.output_path)
+    make_dataset(args.input_path, args.output_path)
