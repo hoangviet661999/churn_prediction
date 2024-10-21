@@ -3,3 +3,4 @@ matplotlib
 seaborn
 hydra-core
 scikit-learn
+wandb
