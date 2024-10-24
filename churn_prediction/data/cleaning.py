@@ -1,22 +1,18 @@
+import argparse
 import os
 import sys
 
-__dir__ = os.path.dirname(__file__)
-sys.path.append(__dir__)
-sys.path.insert(0, os.path.abspath(os.path.join(__dir__, '..')))
-
-import argparse
-
 import wandb
-from dataset import (
-    cleaning_data,
-    read_dataset,
-    save_data_locally,
-    save_data_wandb
-)
+from dataset import cleaning_data, read_dataset, save_data_locally, save_data_wandb
 from utils.logging import get_logger
 
+__dir__ = os.path.dirname(__file__)
+sys.path.append(__dir__)
+sys.path.insert(0, os.path.abspath(os.path.join(__dir__, "..")))
+
+
 logger = get_logger()
+
 
 def make_dataset(input_path, output_path):
     run = wandb.init(project="mlops for bank churn", job_type="cleaning")

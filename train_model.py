@@ -3,10 +3,6 @@ import os
 
 import hydra
 import wandb
-from hydra.core.hydra_config import HydraConfig
-from omegaconf import DictConfig, OmegaConf
-from sklearn.model_selection import train_test_split
-
 from churn_prediction.data.dataset import process_data, read_dataset
 from churn_prediction.model import (
     eval_model,
@@ -15,6 +11,9 @@ from churn_prediction.model import (
     train_model,
 )
 from churn_prediction.utils.visualize import plot_feature_importances
+from hydra.core.hydra_config import HydraConfig
+from omegaconf import DictConfig, OmegaConf
+from sklearn.model_selection import train_test_split
 
 logger = logging.getLogger(__name__)
 
