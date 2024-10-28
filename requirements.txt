@@ -4,3 +4,5 @@ seaborn
 hydra-core
 scikit-learn
 wandb
+fastapi
+uvicorn
