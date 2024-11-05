@@ -1,6 +1,10 @@
 from typing import Annotated, Literal
 
+import joblib
+import pandas as pd
 import uvicorn
+from churn_prediction.data.dataset import process_data
+from churn_prediction.model import inference, load_model
 from fastapi import FastAPI, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -30,8 +34,30 @@ class Feature_Needed(BaseModel):
 
 
 @app.post("/refer")
-async def inference(item: Annotated[Feature_Needed, Form()]):
-    return "OK"
+async def make_prediction(item: Annotated[Feature_Needed, Form()]):
+    data = pd.DataFrame(
+        {
+            "CreditScore": [item.CreditScore],
+            "Geography": [item.Geography],
+            "Gender": [item.Gender],
+            "Age": [item.Age],
+            "Tenure": [item.Tenure],
+            "Balance": [item.Balance],
+            "NumOfProducts": [item.NumOfProducts],
+            "HasCrCard": [item.HasCrCard],
+            "IsActiveMember": [item.IsActiveMember],
+            "EstimatedSalary": [item.EstimatedSalary],
+        }
+    )
+    data_pipeline = joblib.load("outputs\\2024-11-05\\15-17-16\\data_pipeline.pkl")
+    model = load_model("outputs\\2024-11-05\\15-17-16\\rf.pth")
+
+    data, _ = process_data(data, training=False, data_pipeline=data_pipeline)
+    y = inference(model, data)
+
+    if y == 0:
+        return "Non-exited"
+    return "Exited"
 
 
 if __name__ == "__main__":

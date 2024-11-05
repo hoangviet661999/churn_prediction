@@ -87,5 +87,16 @@ def load_model(path: str | Path):
     return model
 
 
-def inference():
-    pass
+def inference(model, X: np.array) -> int:
+    """
+    Prediction churn_prediction.
+
+        Parameters:
+            model: machine learning model to make prediction.
+            X (pd.Dataframe): user need to be predicted.
+
+        Returns:
+            y(int) : Churn or not
+    """
+    y = model.predict(X)
+    return y
