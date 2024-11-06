@@ -4,3 +4,4 @@ isort
 pytest
 pre-commit
 fastapi[standard]
+locust

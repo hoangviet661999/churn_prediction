@@ -25,12 +25,18 @@ class Feature_Needed(BaseModel):
     Geography: Literal["France", "Spain", "Germany"]
     Gender: Literal["Male", "Female"]
     Age: int
-    Tenure: int = Field(gt=0, le=10)
+    Tenure: int = Field(ge=0, le=10)
     Balance: float
-    NumOfProducts: int = Field(gt=1, le=4)
-    HasCrCard: int = Field(gt=0, le=1)
-    IsActiveMember: int = Field(gt=0, le=1)
+    NumOfProducts: int = Field(ge=1, le=4)
+    HasCrCard: int = Field(ge=0, le=1)
+    IsActiveMember: int = Field(ge=0, le=1)
     EstimatedSalary: float
+
+
+@app.get("/")
+def read_root():
+    """Root endpoint."""
+    return "Welcome"
 
 
 @app.post("/refer")
@@ -61,4 +67,4 @@ async def make_prediction(item: Annotated[Feature_Needed, Form()]):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=7860, log_level="info")
+    uvicorn.run(app, host="127.0.0.1", port=8000, log_level="info")
