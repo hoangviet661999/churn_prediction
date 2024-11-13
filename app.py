@@ -7,6 +7,7 @@ from churn_prediction.data.dataset import process_data
 from churn_prediction.model import inference, load_model
 from fastapi import FastAPI, Form
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel, Field
 
 app = FastAPI()
@@ -18,6 +19,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+Instrumentator().instrument(app).expose(app)
 
 
 class Feature_Needed(BaseModel):
@@ -55,8 +58,8 @@ async def make_prediction(item: Annotated[Feature_Needed, Form()]):
             "EstimatedSalary": [item.EstimatedSalary],
         }
     )
-    data_pipeline = joblib.load("outputs\\2024-11-05\\15-17-16\\data_pipeline.pkl")
-    model = load_model("outputs\\2024-11-05\\15-17-16\\rf.pth")
+    data_pipeline = joblib.load("outputs/2024-11-05/15-17-16/data_pipeline.pkl")
+    model = load_model("outputs/2024-11-05/15-17-16/rf.pth")
 
     data, _ = process_data(data, training=False, data_pipeline=data_pipeline)
     y = inference(model, data)
@@ -67,4 +70,4 @@ async def make_prediction(item: Annotated[Feature_Needed, Form()]):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000, log_level="info")
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
